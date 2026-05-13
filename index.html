@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Plant Tracking Dashboard — Real-time soil moisture, harvest alerts, AI-powered irrigation and fertilizer recommendations for your plants." />
+  <title>PlantIQ — Smart Plant Tracking Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Auth guard: must run before render -->
+  <script src="auth.js"></script>
+  <script>if (!window.Auth || !Auth.isLoggedIn()) { window.location.replace('login.html'); }</script>
+</head>
+
+<body>
+
+  <!-- Animated background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🌿</div>
+      <span class="logo-text">PlantIQ</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="dashboard" id="navDashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-section="soil" id="navSoil">
+        <span class="nav-icon">🌱</span>
+        <span class="nav-label">Soil Monitor</span>
+      </a>
+      <a href="#" class="nav-item" data-section="alerts" id="navAlerts">
+        <span class="nav-icon">🔔</span>
+        <span class="nav-label">Alerts</span>
+        <span class="nav-badge" id="alertBadge">0</span>
+      </a>
+      <a href="#" class="nav-item" data-section="harvest" id="navHarvest">
+        <span class="nav-icon">🌾</span>
+        <span class="nav-label">Harvest</span>
+      </a>
+      <a href="#" class="nav-item" data-section="diary" id="navDiary">
+        <span class="nav-icon">📔</span>
+        <span class="nav-label">Diary</span>
+        <span class="nav-badge" id="diaryBadge" style="display:none">0</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="last-updated" id="lastUpdated">
+        <span class="lu-icon">🕐</span>
+        <span class="lu-text">Not synced yet</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">☰</button>
+        <div class="page-title">
+          <h1 id="pageTitle">Dashboard</h1>
+          <span class="page-subtitle" id="pageSubtitle">Monitor your plants in real-time</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <!-- Plant Selector Dropdown -->
+        <div class="dropdown-wrap" id="plantDropdownWrap">
+          <label class="dropdown-label">🌿 Plant Type</label>
+          <div class="custom-select" id="plantSelectWrapper">
+            <div class="select-selected" id="plantSelected">Tomatoes</div>
+            <div class="select-options" id="plantOptions">
+              <div class="select-option active" data-value="tomato">🍅 Tomatoes</div>
+              <div class="select-option" data-value="pepper">🌶️ Peppers</div>
+              <div class="select-option" data-value="lettuce">🥬 Lettuce</div>
+              <div class="select-option" data-value="wheat">🌾 Wheat</div>
+              <div class="select-option" data-value="corn">🌽 Corn</div>
+              <div class="select-option" data-value="rice">🌾 Rice</div>
+              <div class="select-option" data-value="herbs">🌿 Herbs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Soil Selector Dropdown -->
+        <div class="dropdown-wrap" id="soilDropdownWrap">
+          <label class="dropdown-label">🪨 Soil Type</label>
+          <div class="custom-select" id="soilSelectWrapper">
+            <div class="select-selected" id="soilSelected">Loamy</div>
+            <div class="select-options" id="soilOptions">
+              <div class="select-option active" data-value="loamy">🟤 Loamy</div>
+              <div class="select-option" data-value="sandy">🟡 Sandy</div>
+              <div class="select-option" data-value="clay">🔴 Clay</div>
+              <div class="select-option" data-value="silty">⚫ Silty</div>
+              <div class="select-option" data-value="peaty">🟢 Peaty</div>
+              <div class="select-option" data-value="chalky">⚪ Chalky</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Weather Entry Button -->
+        <button class="geo-btn" id="geoBtn" title="Enter your local weather data manually">
+          <span class="geo-icon" id="geoIcon">🌤️</span>
+          <span class="geo-text" id="geoBtnText">Enter Weather</span>
+          <span class="geo-pulse" id="geoPulse"></span>
+        </button>
+
+        <!-- User Badge -->
+        <div class="user-badge" id="userBadge">
+          <span class="user-avatar">👤</span>
+          <span class="user-name" id="userNameDisplay">User</span>
+          <button class="logout-btn" id="logoutBtn" title="Logout"
+            onclick="if(window.Auth){ Auth.logout(); }">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT SECTIONS -->
+    <div class="content-body">
+
+      <!-- ===== DASHBOARD SECTION ===== -->
+      <section class="section active" id="sectionDashboard">
+
+        <!-- Location Banner -->
+        <div class="location-banner" id="locationBanner" style="display:none">
+          <span class="loc-icon">🌍</span>
+          <span class="loc-text" id="locationText">Weather data entered</span>
+          <div class="loc-coords" id="locationCoords"></div>
+          <button class="loc-edit-btn" id="locEditBtn" title="Edit weather data">✏️ Edit</button>
+        </div>
+
+        <!-- Weather Cards Row -->
+        <div class="weather-row" id="weatherRow" style="display:none">
+          <div class="weather-card" id="wc-temp">
+            <div class="wc-icon">🌡️</div>
+            <div class="wc-value" id="wTemp">--</div>
+            <div class="wc-label">Temperature</div>
+          </div>
+          <div class="weather-card" id="wc-humidity">
+            <div class="wc-icon">💧</div>
+            <div class="wc-value" id="wHumidity">--</div>
+            <div class="wc-label">Humidity</div>
+          </div>
+          <div class="weather-card" id="wc-rain">
+            <div class="wc-icon">🌧️</div>
+            <div class="wc-value" id="wRain">--</div>
+            <div class="wc-label">Rainfall</div>
+          </div>
+          <div class="weather-card" id="wc-uv">
+            <div class="wc-icon">☀️</div>
+            <div class="wc-value" id="wUV">--</div>
+            <div class="wc-label">UV Index</div>
+          </div>
+          <div class="weather-card" id="wc-wind">
+            <div class="wc-icon">💨</div>
+            <div class="wc-value" id="wWind">--</div>
+            <div class="wc-label">Wind Speed</div>
+          </div>
+          <div class="weather-card" id="wc-et">
+            <div class="wc-icon">📈</div>
+            <div class="wc-value" id="wET">--</div>
+            <div class="wc-label">Evapotransp.</div>
+          </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+
+          <!-- Soil Moisture Gauge -->
+          <div class="dash-card card-moisture" id="cardMoisture">
+            <div class="card-header">
+              <h2 class="card-title">🌱 Soil Moisture</h2>
+              <span class="card-live-badge">LIVE ESTIMATE</span>
+            </div>
+            <div class="gauge-container">
+              <svg class="gauge-svg" viewBox="0 0 200 120" id="moistureGaugeSVG">
+                <defs>
+                  <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#ef4444" />
+                    <stop offset="33%" style="stop-color:#f59e0b" />
+                    <stop offset="66%" style="stop-color:#22c55e" />
+                    <stop offset="100%" style="stop-color:#0ea5e9" />
+                  </linearGradient>
+                </defs>
+                <!-- Background arc -->
+                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="16"
+                  stroke-linecap="round" />
+                <!-- Value arc -->
+                <path id="gaugeArc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGrad)"
+                  stroke-width="16" stroke-linecap="round" stroke-dasharray="0 251" />
+                <!-- Needle -->
+                <line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="white" stroke-width="3"
+                  stroke-linecap="round" transform="rotate(-90, 100, 100)" />
+                <circle cx="100" cy="100" r="6" fill="white" />
+              </svg>
+              <div class="gauge-center">
+                <div class="gauge-value" id="moistureValue">--</div>
+                <div class="gauge-unit">% moisture</div>
+              </div>
+            </div>
+            <div class="moisture-bands">
+              <span class="band dry">Dry</span>
+              <span class="band low">Low</span>
+              <span class="band optimal">Optimal</span>
+              <span class="band wet">Saturated</span>
+            </div>
+            <div class="moisture-status" id="moistureStatus">
+              <span class="status-dot" id="moistureDot"></span>
+              <span id="moistureStatusText">Waiting for weather data…</span>
+            </div>
+          </div>
+
+          <!-- Harvest Status Card -->
+          <div class="dash-card card-harvest" id="cardHarvest">
+            <div class="card-header">
+              <h2 class="card-title">🌾 Harvest Status</h2>
+            </div>
+            <div class="harvest-center" id="harvestCenter">
+              <div class="harvest-ring" id="harvestRing">
+                <div class="harvest-icon" id="harvestIcon">🌱</div>
+              </div>
+              <div class="harvest-stage" id="harvestStage">Select plant &amp; get weather</div>
+              <div class="harvest-progress-wrap">
+                <div class="harvest-progress-bar">
+                  <div class="harvest-progress-fill" id="harvestFill" style="width:0%"></div>
+                </div>
+                <div class="harvest-pct" id="harvestPct">0%</div>
+              </div>
+              <div class="harvest-days" id="harvestDays">-- days to harvest</div>
+            </div>
+            <div class="harvest-alerts-list" id="harvestAlertsList"></div>
+          </div>
+
+          <!-- AI Recommendations Panel -->
+          <div class="dash-card card-alerts" id="cardAlerts">
+            <div class="card-header">
+              <h2 class="card-title">🤖 AI Recommendations</h2>
+              <span class="card-live-badge alert-badge-count" id="alertCount">0 actions</span>
+            </div>
+            <div class="alerts-empty" id="alertsEmpty">
+              <div class="empty-icon">📡</div>
+              <p>Click <strong>Enter Weather</strong> to input your local conditions and generate AI recommendations.
+              </p>
+            </div>
+            <div class="alerts-list" id="alertsList"></div>
+            <!-- AI Summary Panel (Farmer-Friendly) -->
+            <div class="ai-engine-panel" id="aiEnginePanel" style="display:none">
+              <div class="aep-header">
+                <span class="aep-title">🧠 How the AI decided</span>
+                <span class="aep-badge">AI ACTIVE</span>
+              </div>
+
+              <!-- 3 Decision Boxes -->
+              <div class="aep-decisions">
+                <div class="aep-decision-box" id="aepIrrBox">
+                  <div class="aep-dec-icon">💧</div>
+                  <div class="aep-dec-label">Watering</div>
+                  <div class="aep-dec-val" id="aepIrrLabel">--</div>
+                </div>
+                <div class="aep-decision-box" id="aepFertBox">
+                  <div class="aep-dec-icon">🧪</div>
+                  <div class="aep-dec-label">Fertilizer</div>
+                  <div class="aep-dec-val" id="aepFertLabel">--</div>
+                </div>
+                <div class="aep-decision-box aep-yield-box">
+                  <div class="aep-dec-icon">📈</div>
+                  <div class="aep-dec-label">Crop Benefit</div>
+                  <div class="aep-dec-val" id="aepYield">--</div>
+                </div>
+              </div>
+
+              <!-- Key Factor -->
+              <div class="aep-keyfactor">
+                <span class="aep-kf-label">🔍 Main factor checked:</span>
+                <span class="aep-kf-val" id="aepFeature">--</span>
+              </div>
+
+              <!-- AI Confidence Bar -->
+              <div class="aep-confidence">
+                <div class="aep-conf-row">
+                  <span class="aep-conf-label">AI Confidence</span>
+                  <span class="aep-conf-pct" id="aepConfPct">--%</span>
+                </div>
+                <div class="aep-conf-bar">
+                  <div class="aep-conf-fill" id="aepConfFill" style="width:0%"></div>
+                </div>
+              </div>
+
+              <!-- Steps AI Checked -->
+              <div class="aep-steps-wrap">
+                <div class="aep-steps-label">✅ Steps the AI checked:</div>
+                <div class="aep-steps" id="aepPath">--</div>
+              </div>
+
+              <!-- Trained on -->
+              <div class="aep-trained">
+                🌾 AI trained on <strong id="aepSamples">--</strong> real farm records
+              </div>
+            </div>
+
+            <!-- Save to Diary button -->
+            <div class="save-diary-wrap" id="saveDiaryWrap" style="display:none">
+              <button class="save-diary-btn" id="saveDiaryBtn">
+                📔 Save to Diary
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /dashboard-grid -->
+
+        <!-- Placeholder when no data -->
+        <div class="no-data-hint" id="noDataHint">
+          <div class="hint-graphic">🌿</div>
+          <h2>Welcome to PlantIQ</h2>
+          <p>Select your plant &amp; soil type, then tap <strong>Enter Weather</strong> to input your local conditions
+            and begin monitoring.</p>
+          <button class="hint-geo-btn" id="hintGeoBtn">
+            <span>🌤️</span> Enter Weather Data
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ===== SOIL MONITOR SECTION ===== -->
+      <section class="section" id="sectionSoil">
+        <div class="section-header">
+          <h2>🌱 Soil Monitor</h2>
+          <p>Detailed soil moisture analysis & recommendations</p>
+        </div>
+        <div class="soil-grid" id="soilGrid">
+          <div class="soil-card" id="soilMoistureDetail">
+            <div class="soil-icon">💧</div>
+            <div class="soil-title">Moisture Level</div>
+            <div class="soil-value" id="soilMoistureBig">--%</div>
+            <div class="soil-desc" id="soilMoistureDesc">Get weather data to estimate</div>
+          </div>
+          <div class="soil-card" id="soilTempCard">
+            <div class="soil-icon">🌡️</div>
+            <div class="soil-title">Soil Temp (Est.)</div>
+            <div class="soil-value" id="soilTempBig">--°C</div>
+            <div class="soil-desc" id="soilTempDesc">Based on air temperature</div>
+          </div>
+          <div class="soil-card" id="soilHealthCard">
+            <div class="soil-icon">❤️</div>
+            <div class="soil-title">Soil Health Score</div>
+            <div class="soil-value" id="soilHealthBig">--/10</div>
+            <div class="soil-desc" id="soilHealthDesc">Composite score</div>
+          </div>
+          <div class="soil-card" id="soilNPKCard">
+            <div class="soil-icon">🧪</div>
+            <div class="soil-title">Estimated NPK Need</div>
+            <div class="soil-value npk" id="soilNPKBig">N -- P -- K --</div>
+            <div class="soil-desc" id="soilNPKDesc">Fertilizer requirement</div>
+          </div>
+        </div>
+        <div class="soil-timeline" id="soilTimeline">
+          <h3>📅 Soil Condition Forecast</h3>
+          <div class="timeline-grid" id="timelineGrid"></div>
+        </div>
+      </section>
+
+      <!-- ===== ALERTS SECTION ===== -->
+      <section class="section" id="sectionAlerts">
+        <div class="section-header">
+          <h2>🔔 All Alerts & Actions</h2>
+          <p>Complete irrigation, fertilizer, and plant health recommendations</p>
+        </div>
+        <div class="full-alerts-list" id="fullAlertsList">
+          <div class="alerts-empty">
+            <div class="empty-icon">📡</div>
+            <p>No alerts yet. Click <strong>Enter Weather</strong> to input conditions and generate recommendations.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== HARVEST SECTION ===== -->
+      <section class="section" id="sectionHarvest">
+        <div class="section-header">
+          <h2>🌾 Harvest Planning</h2>
+          <p>Track readiness and plan your harvest schedule</p>
+        </div>
+        <div class="harvest-detail-grid" id="harvestDetailGrid">
+          <div class="hd-card">
+            <div class="hd-label">Plant Type</div>
+            <div class="hd-value" id="hdPlantType">Tomatoes</div>
+          </div>
+          <div class="hd-card">
+            <div class="hd-label">Growth Stage</div>
+            <div class="hd-value" id="hdStage">--</div>
+          </div>
+          <div class="hd-card">
+            <div class="hd-label">Readiness</div>
+            <div class="hd-value" id="hdReadiness">--</div>
+          </div>
+          <div class="hd-card">
+            <div class="hd-label">Est. Days to Harvest</div>
+            <div class="hd-value" id="hdDays">--</div>
+          </div>
+        </div>
+        <div class="harvest-tips" id="harvestTips">
+          <h3>💡 Harvest Tips for <span id="harvestTipsPlant">your plant</span></h3>
+          <div class="tips-list" id="tipsList"></div>
+        </div>
+      </section>
+
+      <!-- ===== DIARY SECTION ===== -->
+      <section class="section" id="sectionDiary">
+        <div class="section-header">
+          <h2>📔 Crop Diary</h2>
+          <p>Your daily log of crop condition checks</p>
+        </div>
+        <div class="diary-toolbar">
+          <span class="diary-stat-text" id="diaryEntryCount">0 entries</span>
+          <button class="diary-clear-btn" id="diaryClearBtn">🗑️ Clear All</button>
+        </div>
+        <div class="diary-entries" id="diaryEntries"></div>
+      </section>
+
+    </div><!-- /content-body -->
+  </main>
+
+  <!-- ===== WEATHER INPUT MODAL ===== -->
+  <div class="modal-overlay" id="weatherModal" style="display:none">
+    <div class="modal-card" id="weatherModalCard">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">🌤️</span>
+          <div>
+            <h2 class="modal-title">Enter Weather Data</h2>
+            <p class="modal-sub">Input your local conditions to get AI-powered plant recommendations</p>
+          </div>
+        </div>
+        <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Location Name -->
+        <div class="form-row full">
+          <label class="form-label" for="inputLocation">📍 Location Name</label>
+          <input class="form-input" type="text" id="inputLocation" placeholder="e.g. New Delhi, Mumbai, My Farm…" required />
+        </div>
+
+        <div class="form-grid">
+          <!-- Temperature -->
+          <div class="form-group">
+            <label class="form-label" for="inputTemp">
+              🌡️ Temperature
+              <span class="form-unit">°C</span>
+            </label>
+            <input class="form-input" type="number" id="inputTemp" placeholder="e.g. 28" min="-20" max="60"
+              step="0.1" />
+            <div class="form-hint">Current air temperature</div>
+          </div>
+
+          <!-- Humidity -->
+          <div class="form-group">
+            <label class="form-label" for="inputHumidity">
+              💧 Humidity
+              <span class="form-unit">%</span>
+            </label>
+            <input class="form-input" type="number" id="inputHumidity" placeholder="e.g. 65" min="0" max="100"
+              step="1" />
+            <div class="form-hint">Relative humidity %</div>
+          </div>
+
+          <!-- Rainfall -->
+          <div class="form-group">
+            <label class="form-label" for="inputRain">
+              🌧️ Rainfall
+              <span class="form-unit">mm</span>
+            </label>
+            <input class="form-input" type="number" id="inputRain" placeholder="e.g. 5" min="0" max="500" step="0.1" />
+            <div class="form-hint">Total today / last 24h</div>
+          </div>
+
+          <!-- UV Index -->
+          <div class="form-group">
+            <label class="form-label" for="inputUV">
+              ☀️ UV Index
+              <span class="form-unit">0–12</span>
+            </label>
+            <input class="form-input" type="number" id="inputUV" placeholder="e.g. 6" min="0" max="12" step="0.1" />
+            <div class="form-hint">Solar UV index value</div>
+          </div>
+
+          <!-- Wind Speed -->
+          <div class="form-group">
+            <label class="form-label" for="inputWind">
+              💨 Wind Speed
+              <span class="form-unit">km/h</span>
+            </label>
+            <input class="form-input" type="number" id="inputWind" placeholder="e.g. 15" min="0" max="200" step="1" />
+            <div class="form-hint">Current wind speed</div>
+          </div>
+
+          <!-- Evapotranspiration -->
+          <div class="form-group">
+            <label class="form-label" for="inputET">
+              📈 Evapotranspiration
+              <span class="form-unit">mm/day</span>
+            </label>
+            <input class="form-input" type="number" id="inputET" placeholder="e.g. 4" min="0" max="20" step="0.1" />
+            <div class="form-hint">Leave blank to auto-estimate</div>
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="presets-section">
+          <div class="presets-label">⚡ Quick Presets</div>
+          <div class="presets-row">
+            <button class="preset-btn" data-preset="hot-dry">🔥 Hot &amp; Dry</button>
+            <button class="preset-btn" data-preset="warm-humid">🌿 Warm &amp; Humid</button>
+            <button class="preset-btn" data-preset="cool-rainy">🌧️ Cool &amp; Rainy</button>
+            <button class="preset-btn" data-preset="mild-clear">☀️ Mild &amp; Clear</button>
+            <button class="preset-btn" data-preset="winter">❄️ Winter Cold</button>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div class="form-error" id="formError" style="display:none"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" id="btnCancel">Cancel</button>
+        <button class="btn-apply" id="btnApply">
+          <span>🌱</span> Apply &amp; Analyse
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- ===== DIARY NOTES MODAL ===== -->
+  <div class="diary-modal-backdrop" id="diaryModalBackdrop" style="display:none">
+    <div class="diary-modal" id="diaryModal">
+      <div class="diary-modal-header">
+        <span>📔 Save to Diary</span>
+        <button class="diary-modal-close" id="diaryModalClose">✕</button>
+      </div>
+      <div class="diary-modal-snapshot" id="diaryModalSnapshot"></div>
+      <div class="diary-modal-field">
+        <label class="diary-modal-label">Personal Notes <span style="opacity:.5">(optional)</span></label>
+        <textarea id="diaryNotesInput" class="diary-modal-textarea"
+          placeholder="How did the crop look today? Any observations, pest sightings, actions taken…" rows="4"
+          maxlength="600"></textarea>
+        <div class="diary-modal-charcount"><span id="diaryCharCount">0</span> / 600</div>
+      </div>
+      <button class="diary-modal-save" id="diaryModalSave">💾 Save Entry</button>
+    </div>
+  </div>
+
+  <!-- ===== TOAST NOTIFICATIONS ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="crop_dataset.js"></script>
+  <script src="ai_engine.js"></script>
+  <script src="diary.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlantIQ — Login</title>
+  <meta name="description" content="Log in to PlantIQ — your AI-powered plant tracking dashboard">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green-100: #dcfce7;
+      --green-200: #bbf7d0;
+      --green-300: #86efac;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --green-800: #166534;
+      --green-900: #14532d;
+      --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #f0fdf4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 10% 5%, rgba(34, 197, 94, 0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 90% 90%, rgba(74, 222, 128, 0.10) 0%, transparent 60%),
+        linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.08), transparent 70%);
+      animation: floatUp linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(110vh) scale(0.8);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 0.4;
+      }
+
+      100% {
+        transform: translateY(-20vh) scale(1.1);
+        opacity: 0;
+      }
+    }
+
+    .login-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border: 1.5px solid rgba(34, 197, 94, 0.2);
+      border-radius: 24px;
+      padding: 44px 40px 36px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.09), 0 4px 16px rgba(22, 163, 74, 0.1);
+      animation: cardIn 0.5s var(--spring);
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #15803d, #22c55e);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);
+    }
+
+    .logo-text {
+      text-align: left;
+    }
+
+    .logo-name {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--green-900);
+      line-height: 1;
+    }
+
+    .logo-tagline {
+      font-size: 11px;
+      color: #6b7280;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
+
+    .tab-switcher {
+      display: flex;
+      background: #f0fdf4;
+      border: 1.5px solid var(--green-200);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 26px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: var(--green-800);
+      border: 1.5px solid var(--green-200);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      font-size: 16px;
+      pointer-events: none;
+      color: #9ca3af;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 13px 14px 13px 42px;
+      background: #f0fdf4;
+      border: 1.5px solid var(--green-200);
+      border-radius: 12px;
+      color: var(--green-900);
+      font-family: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input::placeholder {
+      color: #9ca3af;
+    }
+
+    .form-input:focus {
+      border-color: #22c55e;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 16px;
+      padding: 2px;
+      transition: color 0.2s;
+    }
+
+    .pw-toggle:hover {
+      color: var(--green-600);
+    }
+
+    .form-error {
+      display: none;
+      background: #fef2f2;
+      border: 1.5px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .form-success {
+      display: none;
+      background: var(--green-100);
+      border: 1.5px solid var(--green-300);
+      color: var(--green-700);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #15803d, #22c55e);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(22, 163, 74, 0.35);
+      margin-top: 4px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(22, 163, 74, 0.45);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .card-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .card-footer a {
+      color: var(--green-600);
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .card-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .data-badge {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .data-badge::before {
+      content: '🔒';
+      font-size: 12px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width:480px) {
+      .login-card {
+        margin: 16px;
+        padding: 32px 20px 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-layer"></div>
+  <div id="bgParticles"></div>
+
+  <div class="login-card">
+
+    <div class="logo">
+      <div class="logo-icon">🌱</div>
+      <div class="logo-text">
+        <div class="logo-name">PlantIQ</div>
+        <div class="logo-tagline">AI-Powered Plant Tracker</div>
+      </div>
+    </div>
+
+    <div class="tab-switcher" role="tablist">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')" role="tab">Login</button>
+      <button class="tab-btn" id="tabRegister" onclick="switchTab('register')" role="tab">Create Account</button>
+    </div>
+
+    <div class="form-error" id="formError"></div>
+    <div class="form-success" id="formSuccess"></div>
+
+    <form id="authForm" onsubmit="handleSubmit(event)" novalidate autocomplete="off">
+
+      <div class="form-group">
+        <label class="form-label" for="inputUsername">Username</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input class="form-input" type="text" id="inputUsername" placeholder="your_username" autocomplete="username"
+            maxlength="30" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputPassword">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔑</span>
+          <input class="form-input" type="password" id="inputPassword" placeholder="••••••••"
+            autocomplete="current-password" maxlength="64">
+          <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePassword()"
+            title="Show/hide password">👁️</button>
+        </div>
+      </div>
+
+      <button class="submit-btn" type="submit" id="submitBtn">
+        <span id="submitLabel">Login</span>
+      </button>
+
+    </form>
+
+    <div class="card-footer" id="footerHint">
+      Don't have an account? <a onclick="switchTab('register')">Create one free</a>
+    </div>
+
+    
+
+
+    
+
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    'use strict';
+
+    if (window.Auth && Auth.isLoggedIn()) {
+      window.location.replace('index.html');
+    }
+
+    var currentMode = 'login';
+
+    (function () {
+      var c = document.getElementById('bgParticles');
+      for (var i = 0; i < 10; i++) {
+        var p = document.createElement('div');
+        p.className = 'particle';
+        var size = Math.random() * 180 + 80;
+        p.style.cssText =
+          'width:' + size + 'px;height:' + size + 'px;' +
+          'left:' + Math.random() * 100 + '%;' +
+          'animation-duration:' + (Math.random() * 18 + 14) + 's;' +
+          'animation-delay:' + (Math.random() * 12) + 's;';
+        c.appendChild(p);
+      }
+    })();
+
+    function switchTab(mode) {
+      currentMode = mode;
+      var isReg = mode === 'register';
+      document.getElementById('tabLogin').classList.toggle('active', !isReg);
+      document.getElementById('tabRegister').classList.toggle('active', isReg);
+      document.getElementById('submitLabel').textContent = isReg ? 'Create Account' : 'Login';
+      document.getElementById('footerHint').innerHTML = isReg
+        ? 'Already have an account? <a onclick="switchTab(\'login\')">Login here</a>'
+        : 'Don\'t have an account? <a onclick="switchTab(\'register\')">Create one free</a>';
+      clearMessages();
+      document.getElementById('inputUsername').focus();
+    }
+
+    function clearMessages() {
+      document.getElementById('formError').style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'none';
+    }
+    function showError(msg) { var el = document.getElementById('formError'); el.textContent = '⚠️ ' + msg; el.style.display = 'block'; }
+    function showSuccess(msg) { var el = document.getElementById('formSuccess'); el.textContent = '✅ ' + msg; el.style.display = 'block'; }
+
+    function togglePassword() {
+      var input = document.getElementById('inputPassword');
+      var btn = document.getElementById('pwToggle');
+      if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+      else { input.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function setLoading(loading) {
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = loading;
+      document.getElementById('submitLabel').innerHTML = loading
+        ? '<span class="spinner"></span> Please wait…'
+        : (currentMode === 'register' ? 'Create Account' : 'Login');
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      clearMessages();
+      var username = document.getElementById('inputUsername').value.trim();
+      var password = document.getElementById('inputPassword').value;
+      if (!username) { showError('Please enter your username'); return; }
+      if (!password) { showError('Please enter your password'); return; }
+      setLoading(true);
+      setTimeout(function () {
+        var result = currentMode === 'register'
+          ? Auth.register(username, password)
+          : Auth.login(username, password);
+        setLoading(false);
+        if (result.ok) {
+          showSuccess(currentMode === 'register'
+            ? 'Account created! Redirecting…'
+            : 'Welcome back, ' + result.username + '!');
+          setTimeout(function () { window.location.replace('index.html'); }, 700);
+        } else {
+          showError(result.msg);
+        }
+      }, 300);
+    }
+
+    document.getElementById('inputUsername').focus();
+  </script>
+</body>
+
+</html>
